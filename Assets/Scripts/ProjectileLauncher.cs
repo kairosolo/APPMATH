@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ProjectileLauncher : MonoBehaviour
 {
+    [SerializeField] private Transform player;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float launchSpeed = 5f;
@@ -46,5 +47,11 @@ public class ProjectileLauncher : MonoBehaviour
         {
             rocketPerLaunch++;
         }
+    }
+
+    public void Shoot()
+    {
+        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, player.rotation);
+        projectile.GetComponent<Projectile>().Initialize(Vector2.up * launchSpeed);
     }
 }
