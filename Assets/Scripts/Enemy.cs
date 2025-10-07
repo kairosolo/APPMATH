@@ -1,24 +1,85 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private Player player;
-    [SerializeField] private float speed;
+    [Header("Health Settings")]
+    [SerializeField] private int health = 5;
+    private int currentHealth;
+    [SerializeField] private Image frontHealthBar;
+    [SerializeField] private Image ghostHealthBar;
+    [SerializeField] private float ghostLerpSpeed = 2f;
+
+    [Header("Path Settings")]
+    [SerializeField] private float travelTime = 1f;
+    [SerializeField] private int currentIndex;
+    [SerializeField] private Transform currentPath;
+
+    private float lerpTimer;
+    private Vector2 startPos;
+    private bool isMoving;
+
+    private void Start()
+    {
+        currentHealth = health;
+        currentPath = PathHandler.Instance.GetPath(currentIndex);
+        startPos = transform.position;
+        isMoving = true;
+
+        frontHealthBar.fillAmount = 1f;
+        ghostHealthBar.fillAmount = 1f;
+    }
+
+    public void TakeDamage()
+    {
+        currentHealth = Mathf.Max(0, currentHealth - 1);
+
+        float targetFill = (float)currentHealth / health;
+        frontHealthBar.fillAmount = targetFill;
+
+        if (currentHealth <= 0)
+        {
+            EnemyManager.Instance.RemoveEnemy(transform);
+            Destroy(gameObject);
+        }
+    }
 
     private void Update()
     {
-        float distance = Mathf.Sqrt(Mathf.Pow(player.transform.position.x - this.transform.position.x, 2) + Mathf.Pow(player.transform.position.y - this.transform.position.y, 2));
-
-        if (distance > 1f)
+        if (ghostHealthBar.fillAmount > frontHealthBar.fillAmount)
         {
-            Vector2 newPosition = Vector2.MoveTowards(transform.position, player.transform.position, Time.deltaTime * speed);
-            transform.position = newPosition;
+            ghostHealthBar.fillAmount = Mathf.Lerp(
+                ghostHealthBar.fillAmount,
+                frontHealthBar.fillAmount,
+                Time.deltaTime * ghostLerpSpeed
+            );
         }
 
-        if (distance < 1f)
+        if (!isMoving || currentPath == null) return;
+
+        lerpTimer += Time.deltaTime;
+        float t = lerpTimer / travelTime;
+        transform.position = Vector2.Lerp(startPos, currentPath.position, t);
+
+        if (t >= 1f)
         {
-            player.gameEnd = true;
-            GameManager.Instance.Lose();
+            transform.position = currentPath.position;
+            NextPath();
         }
+    }
+
+    private void NextPath()
+    {
+        currentIndex++;
+        if (currentIndex >= PathHandler.Instance.pathLength)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        currentPath = PathHandler.Instance.GetPath(currentIndex);
+        startPos = transform.position;
+        lerpTimer = 0f;
+        isMoving = true;
     }
 }

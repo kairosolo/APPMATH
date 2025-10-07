@@ -1,48 +1,83 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Tower : MonoBehaviour
 {
+    [SerializeField] private Transform currentTarget;
+
     [Header("Tower")]
-    [SerializeField] private Transform target;
-    [SerializeField] private float rotSpeed;
-    [SerializeField] private float shootRange;
+    [SerializeField] private float rotSpeed = 5f;
+    [SerializeField] private float shootRange = 5f;
 
     [Header("Projectile")]
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private float fireRate = 0.5f;
-    [SerializeField] private float bulletSpeed;
     private float nextFireTime;
 
     private void Update()
     {
-        if (target == null) return;
-
-        float distance = Mathf.Sqrt(Mathf.Pow(target.transform.position.x - this.transform.position.x, 2) + Mathf.Pow(target.transform.position.y - this.transform.position.y, 2));
-
-        if (distance < shootRange)
+        List<Transform> enemies = EnemyManager.Instance.GetEnemyList();
+        if (enemies == null || enemies.Count == 0)
         {
-            var direction = target.position - transform.position;
-            direction.Normalize();
-            var targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
-            var rot = Quaternion.Euler(0, 0, -targetAngle);
-            this.transform.rotation = Quaternion.Lerp(transform.rotation, rot, rotSpeed * Time.deltaTime);
-            Vector2 directionToTarget = (target.position - transform.position).normalized;
+            currentTarget = null;
+            return;
+        }
 
-            if (Vector3.Dot(this.transform.up, directionToTarget) >= .98f)
+        if (currentTarget == null || !enemies.Contains(currentTarget) ||
+           Mathf.Sqrt(Mathf.Pow(currentTarget.transform.position.x - this.transform.position.x, 2) + Mathf.Pow(currentTarget.transform.position.y - this.transform.position.y, 2)) > shootRange)
+        {
+            currentTarget = GetNearestEnemy(enemies);
+        }
+
+        if (currentTarget == null) return;
+
+        RotateTowardsTarget();
+
+        Vector2 directionToTarget = (currentTarget.position - transform.position).normalized;
+        if (Vector3.Dot(transform.up, directionToTarget) >= 0.98f)
+        {
+            if (Time.time >= nextFireTime)
             {
-                if (Time.time >= nextFireTime)
-                {
-                    Shoot();
-                    nextFireTime = Time.time + fireRate;
-                }
+                Shoot();
+                nextFireTime = Time.time + fireRate;
             }
         }
     }
 
-    public void Shoot()
+    private Transform GetNearestEnemy(List<Transform> enemies)
     {
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, transform.rotation);
-        projectile.GetComponent<TowerProjectile>().Initialize(Vector2.up * bulletSpeed);
+        Transform nearest = null;
+        float shortestDistance = Mathf.Infinity;
+
+        foreach (Transform enemy in enemies)
+        {
+            if (enemy == null) continue;
+            float distance = Mathf.Sqrt(Mathf.Pow(enemy.transform.position.x - this.transform.position.x, 2) + Mathf.Pow(enemy.transform.position.y - this.transform.position.y, 2));
+
+            if (distance < shortestDistance && distance <= shootRange)
+            {
+                shortestDistance = distance;
+                nearest = enemy;
+            }
+        }
+
+        return nearest;
+    }
+
+    private void RotateTowardsTarget()
+    {
+        if (currentTarget == null) return;
+
+        Vector2 direction = currentTarget.position - transform.position;
+        float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+        Quaternion targetRot = Quaternion.Euler(0, 0, -targetAngle);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, rotSpeed * Time.deltaTime);
+    }
+
+    private void Shoot()
+    {
+        Instantiate(projectilePrefab, firePoint.position, transform.rotation).TryGetComponent<TowerProjectile>(out TowerProjectile projectile);
+        projectile.AssignEnemy(currentTarget.GetComponent<Enemy>());
     }
 }

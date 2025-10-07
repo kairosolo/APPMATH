@@ -77,7 +77,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.7529412, g: 0.22352941, b: 0.16862746, a: 1}
+  m_Color: {r: 0.58431375, g: 0.64705884, b: 0.6509804, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -164,7 +164,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.90588236, g: 0.29803923, b: 0.23529412, a: 1}
+  m_Color: {r: 0.20392157, g: 0.59607846, b: 0.85882354, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -199,7 +199,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6689735569728228903}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.5590281, w: 0.82914877}
+  m_LocalRotation: {x: 0, y: 0, z: -0.55902654, w: 0.8291498}
   m_LocalPosition: {x: -4.96, y: 0.54, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -220,10 +220,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d6373e2d55298645acf0b6794d85959, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
-  rotSpeed: 5
-  shootRange: 5
+  currentTarget: {fileID: 0}
+  rotSpeed: 10
+  shootRange: 10
   projectilePrefab: {fileID: 7334502734693607743, guid: 65642f817c600a7439a1071f55ec4843, type: 3}
   firePoint: {fileID: 7909231294084555497}
-  fireRate: 2
-  bulletSpeed: 3
+  fireRate: 1.5
